@@ -1,47 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { nanoid } from 'nanoid';
-import toast, { Toaster } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
+import { useSelector, useDispatch } from "react-redux";
+import actions from './redux/contacts/contacts-actions';
 import Section from "./components/Section/Section";
 import ContactsList from "./components/ContactsList/ContactsList";
 import Form from "./components/Form/Form";
 import Filter from "./components/Filter/Filter";
 
-export default function App() {
-  const [contacts, setContacts] = useState(() => {
-    return JSON.parse(localStorage.getItem('contacts')) ?? [];
-  });
-  const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
-
-  const addContact = ({ name, number }) => {
-    const newContact = {
-      id: nanoid(),
-      name,
-      number,
-    }
-    const normalizedName = name.toLocaleLowerCase();
-
-    if (contacts.some(contact =>
-      contact.name.toLocaleLowerCase().includes(normalizedName))) {
-      return toast.error(`${name} is already in contacts.`)
-    }
-
-    setContacts(prevState => ([...prevState, newContact]));
-  };
-
-  const deleteContact = contactId => {
-    setContacts(prevState => (prevState.filter(contact => contact.id !== contactId)
-    ));
-  };
-
-  const changeFilter = event => {
-    setFilter(event.currentTarget.value);
-  }
-
-  const getVisibleContacts = () => {
+const getVisibleContacts = (contacts, filter) => {
     const normalizedFilter = filter.toLocaleLowerCase();
     const visibleContacts = contacts.filter(contact =>
       contact.name.toLocaleLowerCase().includes(normalizedFilter),
@@ -49,17 +14,22 @@ export default function App() {
     return visibleContacts;
   };
 
+export default function App() {
+  const contacts = useSelector(state => getVisibleContacts(state.contacts.items, state.contacts.filter));
+  const filter = useSelector(state => state.contacts.filter);
+  const dispatch = useDispatch();
+
   return (
     <>
       <Toaster />
       <Section title="Phonebook">
-        <Form onSubmit={addContact}/>
+        <Form onSubmit={({ name, number }) => dispatch(actions.addContact({ name, number }))}/>
       </Section>
       <Section title="Contacts">
-        <Filter value={filter} onChange={changeFilter} />
+        <Filter value={filter} onChange={(e) => dispatch(actions.changeFilter(e.currentTarget.value))} />
         <ContactsList
-          contacts={getVisibleContacts()}
-          onDeleteContact={deleteContact}
+          contacts={contacts}
+          onDeleteContact={id => dispatch(actions.deleteContact(id))}
         />
       </Section>
     </>

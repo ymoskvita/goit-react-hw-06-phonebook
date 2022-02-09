@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { nanoid } from 'nanoid';
 import PropTypes from 'prop-types';
+import { useSelector } from "react-redux";
+import toast from 'react-hot-toast';
 import { InputStyled, Btn } from '../Phonebook.styled';
 
 export default function Form({ onSubmit }) {
+    const contacts = useSelector(state => state.contacts.items);
     const [name, setName] = useState('');
     const [number, setNumber] = useState('');
     const nameInputId = nanoid();
@@ -25,6 +28,14 @@ export default function Form({ onSubmit }) {
 
     const handleSubmit = event => {
         event.preventDefault();
+
+        if (contacts.some(contact =>
+            contact.name.toLocaleLowerCase().includes(name.toLocaleLowerCase()))) {
+            setName('');
+            setNumber('');
+            return toast.error(`${name} is already in contacts.`)
+        }
+
         onSubmit({ name, number });
         setName('');
         setNumber('');
