@@ -1,16 +1,15 @@
 import React from "react";
-import PropTypes from 'prop-types';
+import { useSelector, useDispatch } from "react-redux";
+import actions from '../../redux/contacts/contacts-actions';
 import { InputStyled } from '../Phonebook.styled';
 
-const Filter = ({ value, onChange }) => (
-    <label>Find contacts by name
-        <InputStyled type="text" value={value} onChange={onChange} />
-    </label>
-)
+export default function Filter() {
+    const filter = useSelector(state => state.contacts.filter);
+    const dispatch = useDispatch();
 
-Filter.propTypes = {
-    value: PropTypes.string,
-    onChange:PropTypes.func,
-}
-
-export default Filter;
+    return (
+        <label>Find contacts by name
+            <InputStyled type="text" value={filter} onChange={(e) => dispatch(actions.changeFilter(e.currentTarget.value))} />
+        </label>
+    );
+};
